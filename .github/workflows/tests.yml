@@ -1,0 +1,42 @@
+name: Python Tests
+
+on:
+  push:
+    branches: [ "main" ]  # Trigger on pushes to the main branch
+  pull_request:
+    branches: [ "main" ]  # Trigger on pull requests targeting main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest  # Use the latest Ubuntu environment
+    strategy:
+      fail-fast: false  # Don't cancel other matrix entries if one fails
+      matrix:
+        python-version: ["3.8", "3.9", "3.10", "3.11"]  # Test multiple Python versions
+
+    steps:
+    - uses: actions/checkout@v3  # Checkout your repository code
+
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v3
+      with:
+        python-version: ${{ matrix.python-version }}
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+
+    - name: Run tests with pytest
+      run: |
+        pytest --cov=core --cov=platforms  # Run pytest with coverage
+
+    - name: Upload coverage to Codecov # Optional, but recommended
+      uses: codecov/codecov-action@v3
+      with:
+          token: ${{ secrets.CODECOV_TOKEN }} # Add a Codecov token in repo settings
+          files: ./coverage.xml # optional
+          flags: unittests # optional
+          name: codecov-umbrella # optional
+          fail_ci_if_error: true # optional (default = false)
+          verbose: true # optional (default = false)
